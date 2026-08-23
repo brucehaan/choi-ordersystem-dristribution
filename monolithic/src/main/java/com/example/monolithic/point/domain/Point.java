@@ -25,5 +25,6 @@ public class Point {
         if (this.amount < amount) {
             throw new RuntimeException("잔액이 부족합니다.");
         }
+        this.amount = this.amount - amount;
     }
 }
