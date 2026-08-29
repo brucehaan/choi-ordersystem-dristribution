@@ -1,5 +1,6 @@
 package com.example.point.application;
 
+import com.example.point.application.dto.PointReserveCancelCommand;
 import com.example.point.application.dto.PointReserveCommand;
 import com.example.point.application.dto.PointReserveConfirmCommand;
 import com.example.point.domain.Point;
@@ -58,4 +59,27 @@ public class PointService {
         pointRepository.save(point);
         pointReservationRepository.save(reservation);
     }
+
+    @Transactional
+    public void cancelReserve(PointReserveCancelCommand command) {
+        PointReservation reservation = pointReservationRepository.findByRequestId(command.requestId());
+
+        if (reservation == null) {
+            throw new RuntimeException("예약내역이 존재하지 않습니다.");
+        }
+
+        if (reservation.getStatus() == PointReservation.PointReservationStatus.CANCELLED) {
+            throw new RuntimeException("이미 취소된 예약입니다.");
+        }
+
+        Point point = pointRepository.findById(reservation.getPointId()).orElseThrow();
+
+        point.cancel(reservation.getReservedAmount());
+        reservation.cancel();
+
+        pointRepository.save(point);
+        pointReservationRepository.save(reservation);
+    }
+
+
 }
