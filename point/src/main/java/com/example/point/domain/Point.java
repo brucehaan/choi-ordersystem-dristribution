@@ -40,6 +40,7 @@ public class Point {
     public Point(Long userId, Long amount) {
         this.userId = userId;
         this.amount = amount;
+        this.reservedAmount = 0L;
     }
 
     public void use(Long amount) {

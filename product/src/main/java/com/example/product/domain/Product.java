@@ -25,6 +25,7 @@ public class Product {
     public Product(Long quantity, Long price) {
         this.quantity = quantity;
         this.price = price;
+        this.reservedQuantity = 0L;
     }
 
     public Long reserve(Long requestedQuantity) {

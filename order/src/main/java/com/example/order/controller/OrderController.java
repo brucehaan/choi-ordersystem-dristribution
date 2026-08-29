@@ -1,5 +1,6 @@
 package com.example.order.controller;
 
+import com.example.order.application.OrderCoordinator;
 import com.example.order.application.OrderService;
 import com.example.order.application.RedisLockService;
 import com.example.order.application.dto.CreateOrderResult;
@@ -14,10 +15,12 @@ import org.springframework.web.bind.annotation.RestController;
 public class OrderController {
     private final OrderService orderService;
     private final RedisLockService redisLockService;
+    private final OrderCoordinator orderCoordinator;
 
-    public OrderController(OrderService orderService, RedisLockService redisLockService) {
+    public OrderController(OrderService orderService, RedisLockService redisLockService, OrderCoordinator orderCoordinator) {
         this.orderService = orderService;
         this.redisLockService = redisLockService;
+        this.orderCoordinator = orderCoordinator;
     }
 
     @PostMapping("/order")
@@ -30,13 +33,14 @@ public class OrderController {
     public void placeOrder(
             @RequestBody PlaceOrderRequest request
     ) {
-        String key = "order:monolithic:" + request.orderId();
+        String key = "order:" + request.orderId();
         boolean acquiredLock = redisLockService.tryLock(key, request.orderId().toString());
         if (!acquiredLock) {
             throw new RuntimeException("락 획득에 실패하였습니다.");
         }
 
         try {
+            orderCoordinator.placeOrder(request.toCommand());
         } finally {
             redisLockService.releaseLock(key);
         }
