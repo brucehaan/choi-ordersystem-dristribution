@@ -20,7 +20,7 @@ public class PointController {
     }
 
     @PostMapping("/point/reserve")
-    public void reserve(@RequestBody PointReserveRequest request) {
+    public void reserve(@RequestBody PointReserveRequest request) throws InterruptedException {
         String key = "point:" + request.requestId();
         boolean acquiredLock = redisLockService.tryLock(key, request.requestId());
 
