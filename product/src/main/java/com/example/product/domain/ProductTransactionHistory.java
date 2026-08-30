@@ -36,6 +36,14 @@ public class ProductTransactionHistory {
         return price;
     }
 
+    public Long getProductId() {
+        return productId;
+    }
+
+    public Long getQuantity() {
+        return quantity;
+    }
+
     public enum TransactionType {
         PURCHASE, CANCEL
     }
