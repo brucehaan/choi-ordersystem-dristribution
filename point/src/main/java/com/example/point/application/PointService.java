@@ -1,5 +1,6 @@
 package com.example.point.application;
 
+import com.example.point.application.dto.PointUseCancelCommand;
 import com.example.point.application.dto.PointUseCommand;
 import com.example.point.domain.Point;
 import com.example.point.domain.PointTransactionHistory;
@@ -42,6 +43,39 @@ public class PointService {
                         point.getId(),
                         command.amount(),
                         PointTransactionHistory.TransactionType.USE
+                )
+        );
+    }
+
+    @Transactional
+    public void cancel(PointUseCancelCommand command) {
+        PointTransactionHistory useHistory = pointTransactionHistoryRepository.findByRequestIdAndTransactionType(
+                command.requestId(),
+                PointTransactionHistory.TransactionType.USE
+        );
+
+        if (useHistory == null) {
+            throw new RuntimeException("포인트 사용내역이 존재하지 않습니다.");
+        }
+
+        PointTransactionHistory cancelHistory = pointTransactionHistoryRepository.findByRequestIdAndTransactionType(
+                command.requestId(),
+                PointTransactionHistory.TransactionType.CANCEL
+        );
+
+        if (cancelHistory != null) {
+            throw new RuntimeException("이미 취소된 요청입니다.");
+        }
+
+        Point point = pointRepository.findById(useHistory.getPointId()).orElseThrow();
+
+        point.cancel(useHistory.getAmount());
+        pointTransactionHistoryRepository.save(
+                new PointTransactionHistory(
+                        command.requestId(),
+                        point.getId(),
+                        useHistory.getAmount(),
+                        PointTransactionHistory.TransactionType.CANCEL
                 )
         );
     }

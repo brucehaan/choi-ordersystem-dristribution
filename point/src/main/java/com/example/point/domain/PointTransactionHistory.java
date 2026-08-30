@@ -29,6 +29,14 @@ public class PointTransactionHistory {
         this.transactionType = transactionType;
     }
 
+    public Long getPointId() {
+        return pointId;
+    }
+
+    public Long getAmount() {
+        return amount;
+    }
+
     public enum TransactionType {
         USE, CANCEL
     }
