@@ -13,6 +13,9 @@ public class Point {
 
     private Long amount;
 
+    @Version
+    private Long version;
+
     public Point() {
     }
 
@@ -26,5 +29,9 @@ public class Point {
             throw new RuntimeException("잔액이 부족합니다.");
         }
         this.amount = this.amount - amount;
+    }
+
+    public Long getId() {
+        return id;
     }
 }
