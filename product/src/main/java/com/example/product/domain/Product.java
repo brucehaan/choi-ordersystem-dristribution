@@ -13,6 +13,9 @@ public class Product {
 
     private Long price;
 
+    @Version
+    private Long version;
+
     public Product() {
     }
 
