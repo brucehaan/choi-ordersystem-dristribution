@@ -2,6 +2,8 @@ package com.example.order.application;
 
 import com.example.order.application.dto.OrderDto;
 import com.example.order.application.dto.PlaceOrderCommand;
+import com.example.order.domain.CompensationRegistry;
+import com.example.order.infrastructure.CompensationRegistryRepository;
 import com.example.order.infrastructure.point.PointApiClient;
 import com.example.order.infrastructure.point.PointUseApiRequest;
 import com.example.order.infrastructure.point.PointUseCancelApiRequest;
@@ -11,11 +13,13 @@ import org.springframework.stereotype.Component;
 @Component
 public class OrderCoordinator {
     private final OrderService orderService;
+    private final CompensationRegistryRepository compensationRegistryRepository;
     private final ProductApiClient productApiClient;
     private final PointApiClient pointApiClient;
 
-    public OrderCoordinator(OrderService orderService, ProductApiClient productApiClient, PointApiClient pointApiClient) {
+    public OrderCoordinator(OrderService orderService, CompensationRegistryRepository compensationRegistryRepository, ProductApiClient productApiClient, PointApiClient pointApiClient) {
         this.orderService = orderService;
+        this.compensationRegistryRepository = compensationRegistryRepository;
         this.productApiClient = productApiClient;
         this.pointApiClient = pointApiClient;
     }
@@ -43,14 +47,22 @@ public class OrderCoordinator {
             pointApiClient.use(pointUseApiRequest);
             orderService.complete(command.orderId());
         } catch (Exception e) {
-            ProductBuyCancelApiRequest productBuyCancelApiRequest = new ProductBuyCancelApiRequest(command.orderId().toString());
+            rollback(command.orderId());
+        }
+    }
+
+    public void rollback(Long orderId) {
+        try {
+            ProductBuyCancelApiRequest productBuyCancelApiRequest = new ProductBuyCancelApiRequest(orderId.toString());
             ProductBuyCancelApiResponse productBuyCancelApiResponse = productApiClient.cancel(productBuyCancelApiRequest);
             if (productBuyCancelApiResponse.totalPrice() > 0) {
-                PointUseCancelApiRequest pointUseCancelApiRequest = new PointUseCancelApiRequest(command.orderId().toString());
+                PointUseCancelApiRequest pointUseCancelApiRequest = new PointUseCancelApiRequest(orderId.toString());
                 pointApiClient.cancel(pointUseCancelApiRequest);
             }
-
-            orderService.fail(command.orderId());
+            orderService.fail(orderId);
+        } catch (Exception e) {
+            compensationRegistryRepository.save(new CompensationRegistry(orderId));
+            throw e;
         }
     }
 }
