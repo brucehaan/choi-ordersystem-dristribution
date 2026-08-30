@@ -55,7 +55,7 @@ public class PointService {
         );
 
         if (useHistory == null) {
-            throw new RuntimeException("포인트 사용내역이 존재하지 않습니다.");
+            return;
         }
 
         PointTransactionHistory cancelHistory = pointTransactionHistoryRepository.findByRequestIdAndTransactionType(

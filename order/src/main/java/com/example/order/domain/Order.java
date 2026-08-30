@@ -2,6 +2,8 @@ package com.example.order.domain;
 
 import jakarta.persistence.*;
 
+import static com.example.order.domain.Order.OrderStatus.*;
+
 @Entity
 @Table(name = "orders")
 public class Order {
@@ -14,7 +16,7 @@ public class Order {
     private OrderStatus status;
 
     public Order() {
-        status = OrderStatus.CREATED;
+        status = CREATED;
     }
 
     public Long getId() {
@@ -25,11 +27,26 @@ public class Order {
         return status;
     }
 
+    public void request() {
+        if (status != CREATED) {
+            throw new RuntimeException("잘못된 요청입니다.");
+        }
+
+        status = REQUESTED;
+    }
+
     public void complete() {
-        status = OrderStatus.COMPLETED;
+        status = COMPLETED;
+    }
+
+    public void fail() {
+        if (status != REQUESTED) {
+            throw new RuntimeException("잘못된 요청입니다.");
+        }
+        status = FAILED;
     }
 
     public enum OrderStatus {
-        CREATED, COMPLETED
+        CREATED, REQUESTED, FAILED, COMPLETED
     }
 }
