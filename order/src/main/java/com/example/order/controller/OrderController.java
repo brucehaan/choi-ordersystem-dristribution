@@ -38,7 +38,7 @@ public class OrderController {
             throw new RuntimeException("락 획득에 실패했습니다.");
         }
         try {
-            orderCoordinator.placeOrder(request.toCommand());
+            orderService.placeOrder(request.toCommand());
         } finally {
             redisLockService.releaseLock(lockKey);
         }
